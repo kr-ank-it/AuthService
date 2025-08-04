@@ -6,7 +6,6 @@ import com.ank.authservice.dtos.UserDto;
 import com.ank.authservice.models.Token;
 import com.ank.authservice.models.User;
 import com.ank.authservice.services.IAuthService;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.antlr.v4.runtime.misc.Pair;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,13 +16,12 @@ public class AuthController {
 
     private IAuthService authService;
 
-
     public AuthController(IAuthService authService) {
         this.authService = authService;
     }
     // signup
     @PostMapping("/signup")
-    private UserDto signup(@RequestBody SignUpRequestDto signUpRequestDto) throws JsonProcessingException {
+    private UserDto signup(@RequestBody SignUpRequestDto signUpRequestDto) {
         User user = authService.signup(signUpRequestDto.getEmail(), signUpRequestDto.getPassword());
         return UserDto.fromUser(user);
     }

@@ -1,6 +1,5 @@
 package com.ank.authservice.services;
 
-import com.ank.authservice.dtos.SendEmailDto;
 import com.ank.authservice.exceptions.InvalidTokenException;
 import com.ank.authservice.exceptions.PasswordMismatchException;
 import com.ank.authservice.exceptions.UserAlreadyExistsException;
@@ -9,13 +8,9 @@ import com.ank.authservice.models.Token;
 import com.ank.authservice.models.User;
 import com.ank.authservice.repositories.TokenRepo;
 import com.ank.authservice.repositories.UserRepo;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.antlr.v4.runtime.misc.Pair;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -28,20 +23,13 @@ public class AuthService implements IAuthService {
     private UserRepo userRepo;
     private BCryptPasswordEncoder bCryptPasswordEncoder;
     private TokenRepo tokenRepo;
-
-    @Autowired
-    private KafkaTemplate<String, String> kafkaTemplate;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
     public AuthService(UserRepo userRepo, BCryptPasswordEncoder bCryptPasswordEncoder, TokenRepo tokenRepo) {
         this.userRepo = userRepo;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
         this.tokenRepo = tokenRepo;
     }
 
-    public User signup(String email, String password) throws JsonProcessingException {
+    public User signup(String email, String password) {
         Optional<User> userOptional = userRepo.findByEmailEquals(email);
         if(userOptional.isPresent()) {
             throw new UserAlreadyExistsException("User already exists. Please login");
@@ -50,21 +38,7 @@ public class AuthService implements IAuthService {
         User user = new User();
         user.setEmail(email);
         user.setPassword(bCryptPasswordEncoder.encode(password));
-
-        user = userRepo.save(user);
-        // Send a message to Kafka topic for user signup
-        SendEmailDto sendEmailDto = new SendEmailDto();
-        sendEmailDto.setEmail(email);
-        sendEmailDto.setSubject("Welcome to Ankit's Auth Service");
-        sendEmailDto.setMessage("Thank you for signing up! Your account has been created successfully.");
-
-        kafkaTemplate.send(
-                "sendWelcomeEmailEvent",
-                objectMapper.writeValueAsString(sendEmailDto));
-
-        return user;
-
-
+        return userRepo.save(user);
     }
 
     public Token login(String email, String password) {
