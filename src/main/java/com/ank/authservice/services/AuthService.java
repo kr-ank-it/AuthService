@@ -33,7 +33,6 @@ public class AuthService implements IAuthService {
         Optional<User> userOptional = userRepo.findByEmailEquals(email);
         if(userOptional.isPresent()) {
             throw new UserAlreadyExistsException("User already exists. Please login");
-
         }
         User user = new User();
         user.setEmail(email);

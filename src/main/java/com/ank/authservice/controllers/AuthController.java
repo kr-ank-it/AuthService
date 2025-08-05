@@ -35,6 +35,7 @@ public class AuthController {
 
     @GetMapping("/validate/{token}")
     public UserDto validateToken(@PathVariable("token") String tokenValue) {
+        System.out.println("Validating token: " + tokenValue);
         User user = authService.validateToken(tokenValue);
         return UserDto.fromUser(user);
     }
